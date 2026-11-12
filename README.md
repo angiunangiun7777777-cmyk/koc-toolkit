@@ -1,5 +1,12 @@
 # KOC 挖掘工具（网页版）
 
+> **在线使用，打开就是工具，不用下载任何东西**
+> https://angiunangiun7777777-cmyk.github.io/koc-toolkit/
+>
+> 备用入口（国内访问更稳）：https://koc-toolkit.app-tencent.workbuddy.host/?sharecode=42HQVO352E
+>
+> 仓库页面显示的是源代码文件列表，不是网站本体。要看工具界面请点上面的链接，`downloads/` 里的 zip 只是给想本地跑脚本的人准备的离线版。
+
 用 YouTube Data API v3 在浏览器里直接筛选韩国小体量创作者，自动打分、排查目标 IP 接触史、整理成表。整个站点是纯静态网页，没有后端，也不需要安装任何东西。
 
 ## 在线使用
