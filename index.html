@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KOC 挖掘工具 · 网页版</title>
+<style>
+:root{--bd:#e3e7ec;--bg:#f6f7f9;--pri:#1a6fd4;--ok:#1a7f37;--err:#c0392b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#1f2328;font:14px/1.7 -apple-system,"PingFang SC","Malgun Gothic",sans-serif}
+header{background:#fff;border-bottom:1px solid var(--bd);padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:9}
+h1{font-size:17px;margin:0}
+.tabs{display:flex;gap:6px;margin-left:auto}
+.tab{border:1px solid var(--bd);background:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:13px;color:#444}
+.tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{max-width:1180px;margin:0 auto;padding:20px}
+.card{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+h2{font-size:15px;margin:0 0 12px;padding-left:9px;border-left:4px solid var(--pri)}
+label{display:block;font-size:12.5px;color:#5b6470;margin:10px 0 4px}
+input[type=text],input[type=password],textarea,select{width:100%;border:1px solid var(--bd);border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;background:#fff;color:#1f2328}
+textarea{min-height:96px;line-height:1.7;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid #cfe0f8;border-color:var(--pri)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>div{flex:1;min-width:170px}
+button{border:0;border-radius:6px;padding:9px 20px;font-size:13.5px;cursor:pointer;background:var(--pri);color:#fff;font-family:inherit}
+button:disabled{background:#b9c3cf;cursor:not-allowed}
+button.ghost{background:#fff;color:#333;border:1px solid var(--bd)}
+.hint{font-size:12px;color:#6b7480;margin-top:6px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c9ced6;margin-right:6px;vertical-align:1px}
+.dot.on{background:var(--ok)}
+.dot.off{background:#d0a215}
+#log{background:#1f2328;color:#cfe3d4;border-radius:8px;padding:12px 14px;font:12.5px/1.8 "SF Mono",Menlo,Consolas,monospace;
+     height:190px;overflow-y:auto;white-space:pre-wrap;margin-top:10px}
+#log .t{color:#7d8a99}
+.bar{height:6px;background:#e9edf2;border-radius:4px;overflow:hidden;margin-top:10px}
+.bar>i{display:block;height:100%;background:var(--pri);width:0;transition:width .25s}
+table{border-collapse:collapse;width:100%;font-size:12.5px;background:#fff}
+th{background:#eef1f5;border:1px solid #d8dee6;padding:8px 9px;text-align:left;white-space:nowrap}
+td{border:1px solid var(--bd);padding:8px 9px;vertical-align:top;line-height:1.6}
+tr:nth-child(even) td{background:#fafbfc}
+.tw{overflow:auto;max-height:640px;border:1px solid var(--bd);border-radius:8px}
+td[contenteditable]{background:#fffdf3}
+td[contenteditable]:focus{outline:2px solid #f0d999}
+a{color:var(--pri);text-decoration:none}
+.tag{display:inline-block;background:#e8f0fe;color:var(--pri);border-radius:4px;padding:0 7px;font-size:11.5px}
+.tag.g{background:#e7f4ec;color:var(--ok)}
+.tag.r{background:#fdeceb;color:var(--err)}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:10px 0}
+.kv div{background:#f8f9fb;border:1px solid var(--bd);border-radius:7px;padding:8px 11px}
+.kv b{display:block;font-size:11.5px;color:#6b7480;font-weight:400}
+.kv span{font-size:15px}
+.banner{border-radius:8px;padding:11px 14px;font-size:13px;margin-bottom:14px}
+.banner.w{background:#fff8e6;border:1px solid #f0d999;color:#7a5c00}
+.banner.i{background:#eaf2fd;border:1px solid #c3d9f5;color:#164a86}
+.hide{display:none}
+footer{color:#8a919b;font-size:12px;text-align:center;padding:24px}
+</style>
+
+<header>
+  <h1>KOC 挖掘工具 <span style="font-weight:400;color:#8a919b;font-size:12.5px">网页版 · YouTube Data API v3</span></h1>
+  <div class="tabs">
+    <div class="tab on" data-t="batch">批量挖掘</div>
+    <div class="tab" data-t="single">单频道体检</div>
+    <div class="tab" data-t="help">怎么拿密钥</div>
+  </div>
+</header>
+
+<main>
+<div class="banner i">密钥只保存在<b>你自己的浏览器</b>里，不会上传到任何服务器。这个页面是纯静态的，没有后端。
+<a href="guide.html">Python 脚本完整版说明</a>　<a href="downloads/koc-toolkit.zip">下载离线工具包</a></div>
+
+<!-- ============ 批量挖掘 ============ -->
+<div id="p-batch">
+<div class="card">
+  <h2>① API 密钥</h2>
+  <div class="row">
+    <div style="flex:3"><input type="password" id="key" placeholder="以 AIza 开头的 YouTube Data API v3 密钥"></div>
+    <div style="flex:0 0 auto;display:flex;gap:8px;align-items:flex-end">
+      <button id="savekey">保存并测试</button>
+      <button class="ghost" id="demo">看演示数据</button>
+    </div>
+  </div>
+  <div class="hint"><span id="kstat"><span class="dot off"></span>未配置密钥</span>　每天免费额度 10000 单位，一次搜索 100 单位。</div>
+</div>
+
+<div class="card">
+  <h2>② 选线和词表</h2>
+  <div class="row">
+    <div>
+      <label>线（决定打分口径）</label>
+      <select id="line">
+        <option value="game">游戏类 —— 终点是转化成玩家</option>
+        <option value="film">影视类 —— 终点是转化成电影观众</option>
+      </select>
+    </div>
+    <div>
+      <label>最多深挖几个频道（先少后多，省配额）</label>
+      <select id="limit"><option>10</option><option selected>20</option><option>30</option><option>50</option></select>
+    </div>
+    <div>
+      <label>每频道扫描最近多少条视频</label>
+      <select id="scan"><option>30</option><option selected>50</option><option>100</option></select>
+    </div>
+  </div>
+  <label>召回关键词（每行一个）</label>
+  <textarea id="words"></textarea>
+  <label>排除的频道 ID（每行一个，已经找过的不想再看到就粘在这里）</label>
+  <textarea id="excl" style="min-height:56px" placeholder="UCxxxxxxxxxxxxxxxxxxxxxx"></textarea>
+  <div class="row" style="margin-top:12px;align-items:flex-end">
+    <div style="flex:0 0 auto"><button id="run">开始挖掘</button></div>
+    <div style="flex:0 0 auto"><button class="ghost" id="stop" disabled>停止</button></div>
+    <div class="hint" style="flex:1;text-align:right" id="quota"></div>
+  </div>
+  <div class="bar"><i id="pb"></i></div>
+  <div id="log">准备就绪。填好密钥后点「开始挖掘」。</div>
+</div>
+
+<div class="card hide" id="rescard">
+  <h2>③ 结果 <span class="hint" style="font-weight:400">推荐理由和备注两列可以直接点进去改，改完再导出</span></h2>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <button id="csv">导出 CSV</button>
+    <button class="ghost" id="html">导出 HTML 表</button>
+    <span class="hint" style="align-self:center" id="cnt"></span>
+  </div>
+  <div class="tw"><table id="tbl"></table></div>
+</div>
+</div>
+
+<!-- ============ 单频道体检 ============ -->
+<div id="p-single" class="hide">
+<div class="card">
+  <h2>单频道体检</h2>
+  <label>频道链接、@handle 或频道 ID</label>
+  <div class="row">
+    <div style="flex:3"><input type="text" id="ch" placeholder="https://www.youtube.com/@xxx  或  UCxxxxxxxxxxxxxxxxxxxxxx"></div>
+    <div style="flex:0 0 auto"><button id="check">体检</button></div>
+  </div>
+  <div class="hint">拉最近 200 条视频，算平台占比、玩法占比、垂直度线索、目标 IP 排查、联系方式和活跃度。口径跟上面选的线一致。</div>
+  <div id="slog" style="margin-top:10px"></div>
+</div>
+<div class="card hide" id="scard"></div>
+</div>
+
+<!-- ============ 帮助 ============ -->
+<div id="p-help" class="hide">
+<div class="card">
+  <h2>怎么拿到 API 密钥（三分钟）</h2>
+  <p style="margin:6px 0">1. 打开 <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a>，登录谷歌账号。</p>
+  <p style="margin:6px 0">2. 顶部新建项目（名字随便），进入后点左侧「API 和服务」→「库」，搜索 <b>YouTube Data API v3</b>，启用。</p>
+  <p style="margin:6px 0">3. 左侧「凭据」→「创建凭据」→「API 密钥」，复制那串以 AIza 开头的字符串，粘回本页。</p>
+  <div class="banner w" style="margin-top:12px">如果在第 3 步给密钥加了「网站限制」，要把本页域名加进白名单，否则网页里调用会被拒。
+  刚开始用可以先选「无限制」，跑通了再加限制。</div>
+  <h2>这个工具在算什么</h2>
+  <p><b>游戏线</b>：转化分 = 生存建造占比 45 + 攻略/百科占比 20 + 沙漠废土占比 15 + PC/主机占比 20；手游占比超过 25% 直接扣 25 分。</p>
+  <p><b>影视线</b>：转化分 = 决策向 35 + 榜单向 25 + 科幻史诗 30 + 电影纯度 10；不是真电影号（影视词少于 25% 或韩剧综艺噪音超过 40%）扣 30 分。</p>
+  <p><b>硬标准</b>：订阅 1000～50000、地区 KR、内容相关、播放量真实。上限 5 万是铁律，超了是 KOL 不是 KOC。</p>
+  <h2>几个已经踩过的坑</h2>
+  <p style="margin:6px 0">· 韩国频道标题常常不写游戏名，占比会失真，看到「未识别」比例高就人工核一下标题原文。</p>
+  <p style="margin:6px 0">· 播放量高不等于能转化。低龄向沙盒号均播可以很高，但转化不到买断制成人向游戏。</p>
+  <p style="margin:6px 0">· 出表前一定看活跃度，只看内容分会混进停更一两年的号。</p>
+  <p style="margin:6px 0">· 联系方式按三个来源查：频道简介 → 全部视频简介 → Telegram / 开放聊天室。只查频道简介会漏掉约三分之一。</p>
+</div>
+</div>
+</main>
+
+<footer>纯前端运行 · 密钥不出浏览器 · 2026-10-29</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let KEY = localStorage.getItem('kk_key') || '';
+let STOP = false;
+
+const WORDS = {
+  game: ['발헤임','아크 서바이벌','러스트 게임','코난 엑자일','팰월드','서브노티카','그라운디드','그린 헬',
+         '세븐 데이즈 투 다이','프로젝트 좀보이드','생존게임 추천','생존 게임 공략','오픈월드 생존 게임',
+         '사막 생존 게임','기지 건설 게임','스팀 생존게임','PS5 생존게임','협동 생존 게임'],
+  film: ['영화 추천','재밌는 영화','볼만한 영화','영화 리뷰','영화 결말 해석','개봉 영화 추천','인생 영화',
+         '영화 순위','명작 영화 추천','꼭 봐야 할 영화','SF 영화 추천','우주 영화 추천','디스토피아 영화','블록버스터 영화']
+};
+
+const RX = {
+  pc: /(스팀|steam|PC|피시|콘솔|PS5|플스|플레이스테이션|엑스박스|xbox)/i,
+  mob: /(모바일|앱스토어|구글 ?플레이|원스토어|안드로이드|아이폰|갤럭시|태블릿)/i,
+  sv: /(생존|서바이벌|크래프트|크래프팅|건설|기지|채집|제작|배고픔|살아남|야생)/,
+  gd: /(공략|가이드|꿀팁|초보|팁|정리|설명|방법|세팅|강좌)/,
+  ds: /(사막|모래|듄|아라키스|스파이스)/,
+  film: /(영화|리뷰|명작|개봉|극장|감독|출연|쿠키|결말|박스오피스|예매|IMAX)/,
+  dcd: /(추천|리뷰|해석|결말|정주행|볼만한|명작|순위|TOP|평점|몰아보기)/i,
+  listw: /(순위|TOP|명작|베스트|모음|정리|\d+선)/i,
+  sci: /(SF|공상과학|우주|디스토피아|미래|세계관|인터스텔라|놀란|매트릭스)/i,
+  nz: /(드라마|예능|웹툰|애니|아이돌|브이로그|먹방|일상|챌린지)/,
+  dune: /(듄|dune|아라키스|메시아|스파이스 ?워즈|폴 ?아트레이데스|어웨이크닝)/i,
+  spoil: /(결말 ?포함|결말|줄거리|몰아보기|요약|정주행|스토리)/,
+  prev: /(예고편|개봉 ?예정|시사회|분석|해석|평점)/,
+  th: /(극장|개봉|예매|IMAX|박스오피스|상영관)/,
+  ott: /(넷플릭스|왓챠|티빙|쿠팡플레이|디즈니|시리즈|시즌)/,
+  biz: /(문의|협업|광고|비즈니스|business|contact|제휴|sponsor|유료)/i,
+  mail: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/,
+  alt: /(t\.me\/[A-Za-z0-9_]+|open\.kakao\.com\/\S+|pf\.kakao\.com\/[A-Za-z0-9_]+)/
+};
+
+function log(m) {
+  const d = new Date().toTimeString().slice(0, 8);
+  $('#log').innerHTML += '<span class="t">[' + d + ']</span> ' + esc(m) + '\n';
+  $('#log').scrollTop = $('#log').scrollHeight;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fmt(n) { return (n || 0).toLocaleString('en-US'); }
+function bar(p) { $('#pb').style.width = Math.max(0, Math.min(100, p)) + '%'; }
+
+async function api(path, params) {
+  params.key = KEY;
+  const url = 'https://www.googleapis.com/youtube/v3/' + path + '?' + new URLSearchParams(params);
+  for (let i = 0; i < 4; i++) {
+    if (STOP) throw new Error('已停止');
+    try {
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.error) {
+        const msg = d.error.message || '';
+        if (r.status === 429 || r.status >= 500 || /quota|rate/i.test(msg)) { await sleep(900 * (i + 1)); continue; }
+        throw new Error(msg);
+      }
+      return d;
+    } catch (e) {
+      if (i === 3) throw e;
+      await sleep(900 * (i + 1));
+    }
+  }
+}
+
+function scoreGame(c) {
+  const n = c.n || 1, p = a => (c[a] || 0) / n;
+  let s = p('sv') * 45 + p('gd') * 20 + p('ds') * 15 + p('pc') * 20;
+  const gate = p('mob') > 0.25 ? 0 : 1;
+  if (!gate) s -= 25;
+  return { score: Math.round(s * 10) / 10, gate: gate };
+}
+function scoreFilm(c) {
+  const n = c.n || 1, p = a => (c[a] || 0) / n;
+  let s = p('dcd') * 35 + p('list') * 25 + p('sci') * 30 + p('film') * 10;
+  const gate = (p('film') >= 0.25 && p('nz') <= 0.40) ? 1 : 0;
+  if (!gate) s -= 30;
+  return { score: Math.round(s * 10) / 10, gate: gate };
+}
+
+function ctype(c, line) {
+  const n = c.n || 1, P = a => Math.round(100 * (c[a] || 0) / n);
+  if (line === 'film') {
+    const sp = c.spoilPct || 0, pv = c.prevPct || 0, th = c.thPct || 0, ot = c.ottPct || 0;
+    const form = sp >= 50 ? '全剧透解说型' : (pv >= 30 ? '前瞻/分析型' : '混合型');
+    const aud = th >= ot ? '影院向观众' : 'OTT 向观众';
+    return '类型：' + form + '<br>形态占比：剧透解说 ' + sp + '%｜前瞻分析 ' + pv +
+           '%<br>受众：' + aud + '<br>渠道倾向：影院 ' + th + '%｜OTT ' + ot + '%';
+  }
+  const pc = P('pc'), mob = P('mob'), sv = P('sv'), gd = P('gd');
+  const style = gd >= 20 ? '攻略/百科型' : (sv >= 30 ? '生存建造实况' : '综合游戏实况');
+  const aud = pc >= mob ? 'PC/主机核心玩家' : '手游休闲玩家';
+  return '类型：' + style + '<br>平台占比：PC/主机 ' + pc + '%｜手游 ' + mob +
+         '%<br>受众：' + aud + '<br>视频风格：生存建造 ' + sv + '%｜攻略向 ' + gd + '%';
+}
+
+function contacts(chDesc, vids) {
+  let em = '', alt = '';
+  for (const v of vids || []) {
+    for (const line of (v.desc || '').split('\n')) {
+      const m = line.match(RX.mail);
+      if (m && RX.biz.test(line)) em = em || m[0];
+      const a = line.match(RX.alt);
+      if (a && !alt) alt = a[0];
+    }
+  }
+  if (!em) {
+    for (const line of (chDesc || '').split('\n')) {
+      const m = line.match(RX.mail);
+      if (m && RX.biz.test(line)) em = m[0];
+    }
+  }
+  if (!alt) { const a = (chDesc || '').match(RX.alt); if (a) alt = a[0]; }
+  return em || (alt ? '非邮箱渠道：' + alt : '未公开（只能站内联系）');
+}
+
+async function scanChannel(ch, line, maxScan) {
+  const cd = await api('channels', { part: 'contentDetails', id: ch.cid });
+  const pl = cd.items[0].contentDetails.relatedPlaylists.uploads;
+  let ids = [], tok = null;
+  while (ids.length < maxScan) {
+    const p = { part: 'contentDetails', playlistId: pl, maxResults: 50 };
+    if (tok) p.pageToken = tok;
+    const r = await api('playlistItems', p);
+    ids = ids.concat((r.items || []).map(i => i.contentDetails.videoId));
+    tok = r.nextPageToken;
+    if (!tok) break;
+  }
+  ids = ids.slice(0, maxScan);
+  const vids = [];
+  for (let i = 0; i < ids.length; i += 50) {
+    const r = await api('videos', { part: 'snippet,statistics', id: ids.slice(i, i + 50).join(',') });
+    for (const v of r.items || []) {
+      vids.push({ title: v.snippet.title, desc: v.snippet.description || '',
+                  date: v.snippet.publishedAt.slice(0, 10), views: +v.statistics.viewCount || 0 });
+    }
+  }
+  const c = { cid: ch.cid, title: ch.title, subs: ch.subs, country: ch.country, desc: ch.desc,
+              n: vids.length, pc: 0, mob: 0, sv: 0, gd: 0, ds: 0,
+              film: 0, dcd: 0, list: 0, sci: 0, nz: 0, unrec: 0, duneHit: [] };
+  for (const v of vids) {
+    const t = v.title + ' ' + v.desc.slice(0, 200);
+    if (RX.pc.test(t)) c.pc++;
+    if (RX.mob.test(t)) c.mob++;
+    if (RX.sv.test(t)) c.sv++;
+    if (RX.gd.test(t)) c.gd++;
+    if (RX.ds.test(t)) c.ds++;
+    if (RX.film.test(t)) c.film++;
+    if (RX.dcd.test(t)) c.dcd++;
+    if (RX.listw.test(t)) c.list++;
+    if (RX.sci.test(t)) c.sci++;
+    if (RX.nz.test(t)) c.nz++;
+    if (line === 'game') { if (!RX.pc.test(t) && !RX.mob.test(t) && !RX.sv.test(t) && !RX.gd.test(t)) c.unrec++; }
+    else { if (!RX.film.test(t) && !RX.nz.test(t)) c.unrec++; }
+    if (RX.dune.test(v.title)) c.duneHit.push(v.title);
+  }
+  const n = c.n || 1;
+  c.spoilPct = Math.round(100 * vids.filter(v => RX.spoil.test(v.title)).length / n);
+  c.prevPct = Math.round(100 * vids.filter(v => RX.prev.test(v.title)).length / n);
+  c.thPct = Math.round(100 * vids.filter(v => RX.th.test(v.title)).length / n);
+  c.ottPct = Math.round(100 * vids.filter(v => RX.ott.test(v.title)).length / n);
+  const vs = vids.map(v => v.views).sort((a, b) => a - b);
+  c.median = vs.length ? vs[Math.floor(vs.length / 2)] : 0;
+  c.mean = vs.length ? Math.round(vs.reduce((a, b) => a + b, 0) / vs.length) : 0;
+  c.last = vids.length ? vids[0].date : '';
+  const cut = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+  c.recent90 = vids.filter(v => v.date >= cut).length;
+  c.contact = contacts(ch.desc, vids);
+  const sc = line === 'game' ? scoreGame(c) : scoreFilm(c);
+  c.score = sc.score; c.gate = sc.gate;
+  c.vids = vids;
+  c.ctype = ctype(c, line);
+  return c;
+}
+
+const COLS = ['分类', '用户名', '平台', '平台链接', '粉丝量', '视频内容类型', '均播', '活跃度', '邮箱', '推荐理由', '备注'];
+
+function render(rows, line) {
+  const cat = line === 'game' ? '游戏类' : '影视类';
+  let h = '<thead><tr>' + COLS.map(c => '<th>' + c + '</th>').join('') + '</tr></thead><tbody>';
+  for (const c of rows) {
+    const cells = [
+      cat, esc(c.title), 'YouTube',
+      '<a href="https://www.youtube.com/channel/' + c.cid + '" target="_blank">频道主页</a>',
+      fmt(c.subs), c.ctype, fmt(c.mean),
+      '最近更新 ' + (c.last || '—') + '｜近90天 ' + c.recent90 + ' 条',
+      esc(c.contact), '',
+      '转化分 ' + c.score + '｜样本 ' + c.n + ' 条｜目标 IP 命中 ' + c.duneHit.length +
+      (c.n && c.unrec / c.n > 0.5 ? '｜未识别 ' + Math.round(100 * c.unrec / c.n) + '%，需人工核标题' : '')
+    ];
+    h += '<tr>' + cells.map((v, i) => {
+      const ed = (i === 9 || i === 10) ? ' contenteditable="true"' : '';
+      return '<td' + ed + '>' + v + '</td>';
+    }).join('') + '</tr>';
+  }
+  $('#tbl').innerHTML = h + '</tbody>';
+  $('#rescard').classList.remove('hide');
+  $('#cnt').textContent = '共 ' + rows.length + ' 个候选';
+}
+
+function toCSV() {
+  const trs = [...document.querySelectorAll('#tbl tbody tr')];
+  const rows = trs.map(tr => [...tr.children].map(td => '"' + td.innerText.replace(/"/g, '""') + '"').join(','));
+  return '\ufeff' + [COLS.join(',')].concat(rows).join('\n');
+}
+function download(name, text, mime) {
+  const b = new Blob([text], { type: mime + ';charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = name; a.click();
+  URL.revokeObjectURL(a.href);
+}
+function exportHTML() {
+  const cat = $('#line').value === 'game' ? '游戏类' : '影视类';
+  const st = '<style>body{font-family:-apple-system,"PingFang SC","Malgun Gothic",sans-serif;background:#f6f7f9;color:#1f2328;padding:24px}' +
+    'table{border-collapse:collapse;width:100%;background:#fff;font-size:13px}' +
+    'th{background:#eef1f5;border:1px solid #d8dee6;padding:9px}td{border:1px solid #e3e7ec;padding:9px;vertical-align:top}' +
+    'tr:nth-child(even) td{background:#fafbfc}a{color:#1a6fd4}</style>';
+  download('KOC名单_' + cat + '_' + new Date().toISOString().slice(0, 10) + '.html',
+    '<!doctype html><meta charset="utf-8">' + st + '<h2>KOC 名单（' + cat + '）</h2><table>' + $('#tbl').innerHTML + '</table>', 'text/html');
+}
+
+async function run() {
+  if (!KEY) { alert('先填密钥并点「保存并测试」'); return; }
+  STOP = false;
+  const line = $('#line').value;
+  const words = $('#words').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const excl = new Set($('#excl').value.split('\n').map(s => s.trim()).filter(Boolean));
+  const LIMIT = +$('#limit').value, SCAN = +$('#scan').value;
+  $('#run').disabled = true; $('#stop').disabled = false;
+  $('#log').innerHTML = ''; bar(0);
+  try {
+    log('开始召回：' + words.length + ' 个关键词');
+    const chans = {};
+    let wi = 0;
+    for (const w of words) {
+      if (STOP) break;
+      const r = await api('search', { part: 'snippet', type: 'video', q: w, maxResults: 50, regionCode: 'KR', relevanceLanguage: 'ko' });
+      for (const it of r.items || []) {
+        const id = it.snippet.channelId;
+        if (!chans[id]) chans[id] = { cid: id, title: it.snippet.channelTitle };
+      }
+      bar(++wi / words.length * 30);
+      log('  「' + w + '」→ 累计 ' + Object.keys(chans).length + ' 个频道');
+    }
+    let list = Object.values(chans).filter(c => !excl.has(c.cid));
+    log('去重后 ' + list.length + ' 个频道（排除池命中 ' + (Object.keys(chans).length - list.length) + ' 个）');
+
+    log('补频道资料：订阅数、地区、简介');
+    const prof = [];
+    for (let i = 0; i < list.length; i += 50) {
+      if (STOP) break;
+      const r = await api('channels', { part: 'snippet,statistics', id: list.slice(i, i + 50).map(c => c.cid).join(',') });
+      for (const c of r.items || []) {
+        prof.push({ cid: c.id, title: c.snippet.title, desc: c.snippet.description || '',
+                    subs: +c.statistics.subscriberCount || 0, country: c.snippet.country || '' });
+      }
+      bar(30 + (i / Math.max(list.length, 1)) * 20);
+    }
+    let cand = prof.filter(c => c.subs >= 1000 && c.subs <= 50000 && c.country === 'KR');
+    log('过 KOC 硬标准（订阅 1000~50000 + KR）：' + cand.length + ' 个');
+    cand.sort((a, b) => b.subs - a.subs);
+    cand = cand.slice(0, LIMIT);
+    log('取前 ' + cand.length + ' 个进入深度扫描');
+
+    const out = [];
+    for (let i = 0; i < cand.length; i++) {
+      if (STOP) break;
+      const c = cand[i];
+      log('[' + (i + 1) + '/' + cand.length + '] ' + c.title + '（' + fmt(c.subs) + ' 订阅）');
+      try {
+        const s = await scanChannel(c, line, SCAN);
+        out.push(s);
+        log('    转化分 ' + s.score + ' | 均播 ' + fmt(s.mean) + ' | 目标 IP 命中 ' + s.duneHit.length + ' | ' + s.contact);
+      } catch (e) { log('    跳过：' + e.message); }
+      bar(50 + (i + 1) / cand.length * 50);
+    }
+    out.sort((a, b) => b.score - a.score);
+    const final = out.filter(c => c.gate === 1 && c.duneHit.length === 0);
+    log('完成：通过门槛且目标 IP 零命中 ' + final.length + ' 个' +
+        (out.length > final.length ? '（另 ' + (out.length - final.length) + ' 个被门槛或命中剔除）' : ''));
+    render(final.length ? final : out, line);
+  } catch (e) {
+    log('出错：' + e.message);
+    if (/referrer/i.test(e.message)) log('提示：密钥可能被限制了来源网站，去控制台把本页域名加进白名单，或改用无限制密钥。');
+  }
+  $('#run').disabled = false; $('#stop').disabled = true; bar(100);
+}
+
+async function checkOne() {
+  if (!KEY) { alert('先填密钥并点「保存并测试」'); return; }
+  const v = $('#ch').value.trim();
+  if (!v) return;
+  $('#slog').innerHTML = '查询中…';
+  try {
+    let id = (v.match(/UC[A-Za-z0-9_-]{22}/) || [])[0], params;
+    if (id) params = { part: 'snippet,statistics', id: id };
+    else if (v.indexOf('@') >= 0) params = { part: 'snippet,statistics', forHandle: '@' + v.split('@')[1].split(/[/?]/)[0] };
+    else params = { part: 'snippet,statistics', forUsername: v.split('/').pop() };
+    const r = await api('channels', params);
+    if (!r.items || !r.items.length) { $('#slog').innerHTML = '<span style="color:#c0392b">没找到这个频道</span>'; return; }
+    const c = r.items[0];
+    const line = $('#line').value;
+    $('#slog').innerHTML = '正在扫描最近视频…';
+    const s = await scanChannel({ cid: c.id, title: c.snippet.title, subs: +c.statistics.subscriberCount || 0,
+                                  country: c.snippet.country || '', desc: c.snippet.description || '' }, line, 200);
+    const gateTxt = s.gate ? '<span class="tag g">通过硬门槛</span>' : '<span class="tag r">未过门槛</span>';
+    const duneTxt = s.duneHit.length ? '<span class="tag r">做过目标 IP 内容 ' + s.duneHit.length + ' 条</span>'
+                                     : '<span class="tag g">目标 IP 零命中</span>';
+    $('#scard').classList.remove('hide');
+    $('#scard').innerHTML =
+      '<h2>' + esc(s.title) + ' ' + gateTxt + ' ' + duneTxt + '</h2>' +
+      '<div class="kv">' +
+      kv('订阅', fmt(s.subs)) + kv('地区', s.country || '未公开') + kv('转化分', s.score) +
+      kv('均播', fmt(s.mean)) + kv('中位播放', fmt(s.median)) + kv('扫描视频', s.n + ' 条') +
+      kv('最近更新', s.last || '—') + kv('近90天', s.recent90 + ' 条') + kv('联系方式', esc(s.contact)) +
+      '</div>' +
+      '<div style="margin-top:10px"><b>视频内容类型</b><div style="margin-top:6px">' + s.ctype + '</div></div>' +
+      (s.n && s.unrec / s.n > 0.5 ? '<div class="banner w" style="margin-top:12px">未识别标题占 ' +
+        Math.round(100 * s.unrec / s.n) + '%，占比可能失真，建议人工核一下标题原文。</div>' : '') +
+      '<div style="margin-top:12px"><b>最近 15 条标题</b><div class="hint">' +
+      s.vids.slice(0, 15).map(x => esc(x.title)).join('<br>') + '</div></div>';
+    $('#slog').innerHTML = '完成。';
+  } catch (e) { $('#slog').innerHTML = '<span style="color:#c0392b">' + esc(e.message) + '</span>'; }
+}
+function kv(k, v) { return '<div><b>' + k + '</b><span>' + v + '</span></div>'; }
+
+function demo() {
+  const line = $('#line').value;
+  const mk = (t, subs, mean, pc, mob, sv, gd, film, sci) => ({
+    cid: 'UCdemo' + Math.random().toString(36).slice(2, 12), title: t, subs: subs, mean: mean, n: 50,
+    pc: Math.round(pc * 50), mob: Math.round(mob * 50), sv: Math.round(sv * 50), gd: Math.round(gd * 50),
+    ds: 3, film: Math.round(film * 50), dcd: Math.round(film * 50), list: 6, sci: Math.round(sci * 50), nz: 2,
+    unrec: 8, spoilPct: 72, prevPct: 9, thPct: 13, ottPct: 4, duneHit: [],
+    last: '2026-10-18', recent90: 11, contact: '未公开（只能站内联系）', score: 0, gate: 1
+  });
+  const rows = line === 'game'
+    ? [mk('예시 채널 A（生存建造）', 12400, 58000, .7, .1, .6, .3, 0, 0),
+       mk('예시 채널 B（据点建造）', 8300, 34000, .8, .05, .7, .2, 0, 0),
+       mk('예시 채널 C（实况为主）', 21000, 92000, .55, .25, .5, .1, 0, 0)]
+    : [mk('예시 채널 A（解说型）', 18700, 76000, 0, 0, 0, 0, .8, .3),
+       mk('예시 채널 B（科幻向）', 9300, 41000, 0, 0, 0, 0, .7, .6),
+       mk('예시 채널 C（综合影评）', 44000, 210000, 0, 0, 0, 0, .6, .2)];
+  rows.forEach(r => { const s = line === 'game' ? scoreGame(r) : scoreFilm(r); r.score = s.score; r.gate = s.gate; r.ctype = ctype(r, line); });
+  rows.sort((a, b) => b.score - a.score);
+  $('#log').innerHTML = '这是演示数据，用来看表格长什么样，不是真实名单。\n填好密钥点「开始挖掘」就能跑真实数据。';
+  render(rows, line);
+}
+
+$('#line').onchange = () => { $('#words').value = WORDS[$('#line').value].join('\n'); est(); };
+function est() {
+  const w = $('#words').value.split('\n').filter(s => s.trim()).length;
+  $('#quota').textContent = '预计消耗约 ' + (w * 100 + (+$('#limit').value) * 6 + 50) + ' 单位（免费额度 10000/天）';
+}
+$('#words').oninput = est; $('#limit').onchange = est;
+$('#savekey').onclick = async () => {
+  KEY = $('#key').value.trim();
+  if (!KEY.startsWith('AIza')) { alert('密钥要以 AIza 开头'); return; }
+  localStorage.setItem('kk_key', KEY);
+  $('#kstat').innerHTML = '<span class="dot on"></span>已保存，测试中…';
+  try {
+    await api('search', { part: 'snippet', type: 'video', q: 'test', maxResults: 1 });
+    $('#kstat').innerHTML = '<span class="dot on"></span>密钥可用';
+  } catch (e) { $('#kstat').innerHTML = '<span class="dot off"></span>' + esc(e.message); }
+};
+$('#run').onclick = run;
+$('#stop').onclick = () => { STOP = true; log('停止中…'); };
+$('#check').onclick = checkOne;
+$('#demo').onclick = demo;
+$('#csv').onclick = () => download('KOC名单_' + new Date().toISOString().slice(0, 10) + '.csv', toCSV(), 'text/csv');
+$('#html').onclick = exportHTML;
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  ['batch', 'single', 'help'].forEach(p => $('#p-' + p).classList.toggle('hide', p !== t.dataset.t));
+});
+if (KEY) { $('#key').value = KEY; $('#kstat').innerHTML = '<span class="dot on"></span>已读取本机保存的密钥'; }
+$('#words').value = WORDS.game.join('\n');
+est();
+</script>
+</html>

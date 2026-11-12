@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8">
+<title>KOC API 挖掘工具包 · 使用说明</title>
+<style>
+body{font-family:-apple-system,"PingFang SC","Malgun Gothic",sans-serif;background:#f6f7f9;color:#1f2328;
+     margin:0;padding:0 24px 60px;line-height:1.75}
+.wrap{max-width:960px;margin:0 auto}
+h1{font-size:26px;margin:32px 0 8px}
+h2{font-size:18px;margin:34px 0 10px;padding-left:10px;border-left:4px solid #1a6fd4}
+h3{font-size:15px;margin:22px 0 6px;color:#2b3440}
+p,li{font-size:14px}
+.lead{color:#5b6470;font-size:14px;margin:0 0 6px}
+.card{background:#fff;border:1px solid #e3e7ec;border-radius:8px;padding:16px 20px;margin:12px 0;
+      box-shadow:0 1px 3px rgba(0,0,0,.05)}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:13px;margin:10px 0}
+th{background:#eef1f5;border:1px solid #d8dee6;padding:8px 10px;text-align:left;white-space:nowrap}
+td{border:1px solid #e3e7ec;padding:8px 10px;vertical-align:top}
+code{background:#eef1f5;padding:2px 6px;border-radius:4px;font-size:12.5px;
+     font-family:"SF Mono",Menlo,Consolas,monospace;color:#1a4d8f}
+pre{background:#1f2328;color:#e6edf3;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:12.5px;
+    font-family:"SF Mono",Menlo,Consolas,monospace;line-height:1.7}
+pre code{background:none;color:inherit;padding:0}
+.warn{background:#fff8e6;border:1px solid #f0d999;border-radius:8px;padding:12px 16px;margin:12px 0;font-size:13.5px}
+.ok{background:#eaf6ee;border:1px solid #b8ddc6;border-radius:8px;padding:12px 16px;margin:12px 0;font-size:13.5px}
+.tag{display:inline-block;background:#e8f0fe;color:#1a6fd4;border-radius:4px;padding:1px 8px;font-size:12px;margin-right:6px}
+.small{color:#6b7480;font-size:12.5px}
+</style>
+<div class="wrap">
+
+<h1>KOC API 挖掘工具包</h1>
+<p class="lead">用 YouTube Data API v3 批量挖韩国 KOC（小体量创作者）并自动打分、排查、出表的 Python 工具集。
+零依赖，只需 Python 3.7+，不用 pip 装任何东西。</p>
+
+<div class="card" style="text-align:center;padding:20px">
+  <div style="font-size:15px;margin-bottom:10px"><b>下载工具包</b></div>
+  <a href="downloads/koc-toolkit.zip" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;
+     padding:11px 26px;border-radius:6px;font-size:14px">koc-toolkit.zip（51 KB）</a>
+  <div class="small" style="margin-top:10px">解压后双击 START_HERE.html 就是本页的本地版；这一份是干净版，
+     只含脚本和说明，不含任何历史频道数据。</div>
+</div>
+
+<div class="ok">
+<b>这个包解决什么问题：</b>找一个「没做过某 IP 相关内容、但观众能转化成目标受众」的韩国 KOC。
+工具会自己做四件事——按真人搜索词批量召回 → 用平台/玩法/形态占比算转化分 → 逐频道排查目标 IP 历史内容 → 抓联系方式并出 HTML 表。
+</div>
+
+<h2>一、三分钟开始</h2>
+
+<h3>第 1 步：装 Python（Mac 基本自带）</h3>
+<p>打开「终端」，输入 <code>python3 --version</code>。能看到 <code>Python 3.x.x</code> 就行。Mac 如果没有，去 python.org 装一个。</p>
+
+<h3>第 2 步：填你自己的 API 密钥</h3>
+<p>双击 <code>setup_api_key.command</code>，按提示粘贴密钥。没有密钥？三步拿到：</p>
+<ol>
+<li>打开 <code>https://console.cloud.google.com/</code>，登录谷歌账号；</li>
+<li>新建项目 → 左侧「API 和服务」→「库」→ 搜 <b>YouTube Data API v3</b> → 启用；</li>
+<li>「凭据」→「创建凭据」→「API 密钥」→ 复制那串以 <code>AIza</code> 开头的字符串。</li>
+</ol>
+<p class="small">密钥会写进本目录的 <code>api_key.txt</code>。这个文件只留在你本地，别跟着包一起转发给别人。也可以不建文件，直接设环境变量 <code>export YOUTUBE_API_KEY=你的密钥</code>。</p>
+
+<h3>第 3 步：选一条线跑</h3>
+<p>双击 <code>run_game_line.command</code>（游戏类）或 <code>run_film_line.command</code>（影视类），全程自动跑完，最后在 <code>scripts/</code> 目录里得到 HTML 表和 CSV。</p>
+<div class="warn"><b>Mac 双击打不开？</b>因为文件是从网上收下来的，系统会拦一道。
+解决办法：在文件上<b>点右键 → 打开</b> → 再点一次「打开」。只需要这样弄一次，以后双击就能直接跑。
+不想双击也可以在终端里跑：<code>cd</code> 到本目录，输入 <code>./run_game_line.command</code>。</div>
+
+<h2>二、两条线分别是什么</h2>
+<table>
+<tr><th style="width:110px">线</th><th>目标</th><th>判据</th></tr>
+<tr><td><span class="tag">游戏类</span></td>
+    <td>把观众转化成「某款游戏」的玩家</td>
+    <td>看平台对不对（PC/主机 vs 手游）、玩法对不对（生存建造/开放世界/沙漠废土）、是不是攻略型内容</td></tr>
+<tr><td><span class="tag">影视类</span></td>
+    <td>把观众转化成「某部电影」的购票观众</td>
+    <td>看是不是真电影号、有没有决策影响力（推荐/解说/榜单）、是不是科幻史诗调性、形态偏剧透解说还是前瞻分析</td></tr>
+</table>
+<p class="small">两条线各算各的、互不折算——游戏号的终点是玩家，影评号的终点是电影观众，混在一起算会两边都失真。</p>
+
+<h2>三、目录里都有什么</h2>
+<table>
+<tr><th style="width:230px">文件 / 目录</th><th>作用</th></tr>
+<tr><td><code>START_HERE.html</code></td><td>本说明，双击浏览器打开</td></tr>
+<tr><td><code>setup_api_key.command</code></td><td>双击填写并校验 API 密钥</td></tr>
+<tr><td><code>run_game_line.command</code></td><td>双击跑完游戏线全流程</td></tr>
+<tr><td><code>run_film_line.command</code></td><td>双击跑完影视线全流程</td></tr>
+<tr><td><code>api_key.txt</code></td><td>放你的密钥（占位文件，需替换）</td></tr>
+<tr><td><code>scripts/</code></td><td>全部 Python 脚本 + 排除池 <code>exclude_pool_raw.json</code></td></tr>
+<tr><td><code>sample_output/</code></td><td>成果表样例，出于隐私考虑不随公开版分发</td></tr>
+</table>
+
+<h2>四、游戏线流程（六步）</h2>
+<pre><code>cd scripts
+python3 find_dune_game_koc2.py                          # ① 召回：按游戏名+意图词搜，排除历史频道
+python3 dg2_s3_score.py                                 # ② 打分：转化分 + 硬门槛 gate
+python3 pick_top.py dg2_s3_scored.json dg2_picks.json 40 30   # ③ 挑前 40 名（分数≥30）
+python3 dg2_s4_contacts.py dg2_picks.json dg2_s4.json   # ④ 排查目标 IP + 抓联系方式 + 均播活跃度
+python3 check_vertical.py                               # ⑤ 单游戏垂直度：观众跟游戏走还是跟人走
+python3 make_table_auto.py dg2_s4.json 游戏类 我的游戏线KOC  # ⑥ 出 HTML + CSV</code></pre>
+
+<h3>各步输入输出</h3>
+<table>
+<tr><th style="width:200px">脚本</th><th>读</th><th>写</th></tr>
+<tr><td>find_dune_game_koc2.py</td><td>exclude_pool_raw.json</td><td>dg2_s1.json（召回）、dg2_s2.json（频道画像）</td></tr>
+<tr><td>dg2_s3_score.py</td><td>dg2_s2.json</td><td>dg2_s3_scored.json（含 score / gate）</td></tr>
+<tr><td>pick_top.py</td><td>任一 scored 结果</td><td>你指定的 picks 文件</td></tr>
+<tr><td>dg2_s4_contacts.py</td><td>picks 文件（参数 1）</td><td>参数 2 指定的文件，默认 dg2_s4.json</td></tr>
+<tr><td>check_vertical.py</td><td>dg2_s4.json</td><td>vertical_check.json</td></tr>
+<tr><td>make_table_auto.py</td><td>最终 json（参数 1）</td><td>前缀.html + 前缀.csv</td></tr>
+</table>
+
+<h3>转化分怎么算</h3>
+<p>生存建造占比 45 + 攻略/百科占比 20 + 沙漠废土占比 15 + PC/主机占比 20，手游占比超过 25% 直接扣 25 分。
+排序逻辑是攻略型优先于纯实况型——愿意做攻略，说明观众已经在玩，不是来看热闹的。</p>
+
+<h2>五、影视线流程（七步）</h2>
+<pre><code>cd scripts
+python3 df1_find_movie_koc.py       # ① 第一轮召回（决策词+榜单词+同调性锚点片）
+python3 df1_s3_score.py             # ② 第一轮打分
+python3 df2_round2.py               # ③ 第二轮换词扩召回 + 打分
+python3 df_active_scan.py           # ④ 活跃度快筛：近 120 天没更新的直接剔
+python3 pick_top.py df_alive.json df_picks.json 30    # ⑤ 挑前 30 名
+python3 df_s4_contacts.py df_picks.json df_s4.json    # ⑥ 排查 + 联系方式（分两批跑见下）
+python3 df_theater.py               # ⑦ 影院向 vs OTT 向占比
+python3 make_table_auto.py df_final16.json 影评类 我的影视线KOC</code></pre>
+<p class="small"><code>df_theater.py</code> 需要 <code>df_s4.json</code> 和 <code>df_s4b.json</code> 两个文件同时存在。
+候选多时分两批跑（各写 df_s4.json / df_s4b.json），候选少就把第一批复制一份改名即可。</p>
+
+<h2>六、硬标准与已知坑</h2>
+<div class="card">
+<b>KOC 硬标准：</b>订阅 1000～50000，韩国（<code>country == KR</code>），内容相关，播放量真实。
+上限 5 万是铁律，超了是 KOL 不是 KOC；下限 1000 是为了排除没有有效受众的号。
+</div>
+<div class="warn">
+<b>几个已经踩过的坑，别再踩：</b>
+<ul style="margin:6px 0 0">
+<li>标题里不写游戏名在韩国很常见，占比类指标会失真，一定要把「未识别」的标题原文拉出来人工核一遍。</li>
+<li>播放量高不等于能转化。低龄向沙盒号（Minecraft 系）均播可以很高，但转化不到买断制成人向游戏；影视线同理，童话寓言解说号、网飞剧集号均播很高但完全不对口。</li>
+<li>出表前必须核活跃度，只看内容分会混进停更一两年没人管的号。</li>
+<li>联系方式三个来源要按序查：频道简介 → 全量视频简介 → 非邮箱渠道（Telegram / 开放聊天室）。只查频道简介会漏掉约三分之一。</li>
+<li>YouTube 官方的「含付费推广」徽章抓不到，别往这个方向试。判断是否接过商单，改看创作者自披露的 광고/협찬/PPL/제휴 等字样。</li>
+</ul>
+</div>
+
+<h2>七、配额与耗时</h2>
+<p>免费额度是每天 10000 单位，一次搜索 100 单位。全流程建议控制在每天 150～250 个候选以内，跑不完第二天接着跑。
+第 ④ 步最费配额，每个频道要 1 次搜索 + 1 次频道查询 + 若干次列表拉取，这也是为什么要先用 <code>pick_top.py</code> 砍一刀。</p>
+
+<h2>八、两个旧脚本说明</h2>
+<p><code>dg2_make_table.py</code> 和 <code>df_make_table.py</code> 是 2026-10 那一批成果的出表脚本，
+里面硬编码了当时的人工判断（视频内容类型、推荐理由、备注），只能用来复现那两张旧表。
+跑自己的新数据请用 <code>make_table_auto.py</code>，它会按同样的 11 列格式自动生成，推荐理由和备注留空待你人工补。</p>
+
+<h2>九、输出的表格长什么样</h2>
+<p>固定 11 列：分类 / 用户名 / 平台 / 平台链接 / 粉丝量 / 视频内容类型 / 均播 / 活跃度 / 邮箱 / 推荐理由 / 备注。
+视频内容类型按四个维度写：类型、平台占比（游戏线）或形态占比（影视线）、受众、视频风格。
+想看成表的实际格式，可以直接在网页应用里点「看演示数据」。</p>
+
+<p class="small" style="margin-top:30px">打包时间 2026-10-29｜Python 3.x｜YouTube Data API v3</p>
+</div>
+</html>
